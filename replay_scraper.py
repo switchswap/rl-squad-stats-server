@@ -1,9 +1,8 @@
+import os
 import time
 
 import requests
-from dotenv import dotenv_values
 from pymongo import MongoClient
-
 
 # Can't put myself in map since I'm always the uploader, so I'll always be in.
 # This could totally probably be a list but idc anymore
@@ -16,10 +15,9 @@ id_map = {
     "a5908295a92848d6b1ad7e1ce6556502": "JC11111118",
 }
 
-config = dotenv_values(".env")
 headers = {
     "Content-Type": "json",
-    "Authorization": config["API_KEY"]
+    "Authorization": os.environ["API_KEY"]
 }
 
 base_url = "https://ballchasing.com/api"
@@ -27,10 +25,10 @@ base_url = "https://ballchasing.com/api"
 
 class ReplayDB:
     def __init__(self):
-        self.mongodb_client = MongoClient(host=config["HOSTNAME"],
-                                          username=config["USERNAME"],
-                                          password=config["PASSWORD"])
-        self.database = self.mongodb_client[config["DB_NAME"]]
+        self.mongodb_client = MongoClient(host=os.environ["HOSTNAME"],
+                                          username=os.environ["USERNAME"],
+                                          password=os.environ["PASSWORD"])
+        self.database = self.mongodb_client[os.environ["DB_NAME"]]
         self.session = requests.Session()
         self.session.headers.update(headers)
         print("Server version:", self.mongodb_client.server_info()["version"])

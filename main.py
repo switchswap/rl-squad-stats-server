@@ -1,9 +1,7 @@
-from dotenv import dotenv_values
+import os
 from fastapi import FastAPI
 from pymongo import MongoClient
 from routes import router as replays_router
-
-config = dotenv_values(".env")
 
 app = FastAPI(docs_url=None,
               redoc_url=None)
@@ -11,10 +9,10 @@ app = FastAPI(docs_url=None,
 
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient(host=config["HOSTNAME"],
-                                     username=config["USERNAME"],
-                                     password=config["PASSWORD"])
-    app.database = app.mongodb_client[config["DB_NAME"]]
+    app.mongodb_client = MongoClient(host=os.environ["HOSTNAME"],
+                                     username=os.environ["USERNAME"],
+                                     password=os.environ["PASSWORD"])
+    app.database = app.mongodb_client[os.environ["DB_NAME"]]
     print("Server version:", app.mongodb_client.server_info()["version"])
     print("Connected to the MongoDB database!")
 

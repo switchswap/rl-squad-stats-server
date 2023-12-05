@@ -1,11 +1,19 @@
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from routes import router as replays_router
 
 app = FastAPI(docs_url=None,
               redoc_url=None)
 
+origins = [
+    f"{os.environ['CORS_ORIGIN']}",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+)
 
 @app.on_event("startup")
 def startup_db_client():

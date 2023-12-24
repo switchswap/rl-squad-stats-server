@@ -1,7 +1,15 @@
-from fastapi import APIRouter, Request
+from typing import Annotated
+from fastapi import APIRouter, Request, Query
 import mongo_queries
+from models.base_models import Replay
+from models.match_detail_models import MatchDetails
 
 router = APIRouter()
+
+
+@router.get("/replays", response_description="List all replays", response_model=list[Replay])
+def get_replays(request: Request):
+    return list(request.app.database["replays"].find())
 
 
 @router.get("/wins/individual", response_description="List individual player wins")
@@ -33,3 +41,9 @@ def get_total_match_count(request: Request):
     return {
         "count": request.app.database["replays"].count_documents({})
     }
+
+
+@router.get("/history/", response_description="Get match history for a team", response_model=list[MatchDetails])
+def get_match_history(request: Request, player_id: Annotated[list[str], Query()]):
+    match_history = list(request.app.database["replays"].aggregate(mongo_queries.match_history_pipeline(player_id)))
+    return match_history

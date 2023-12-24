@@ -354,3 +354,72 @@ player_stats_pipeline = [
         }
     }
 ]
+
+
+def match_history_pipeline(ids: list[str]):
+    return [
+        {
+            '$match': {
+                '$or': [
+                    {
+                        'blue.players.id.id': {
+                            '$all': ids
+                        }
+                    }, {
+                        'orange.players.id.id': {
+                            '$all': ids
+                        }
+                    }
+                ]
+            }
+        }, {
+            '$project': {
+                '_id': 0,
+                'id': 1,
+                'link': 1,
+                'map_code': 1,
+                'map_name': 1,
+                'duration': 1,
+                'overtime': 1,
+                'overtime_seconds': 1,
+                'date': 1,
+                'date_has_timezone': 1,
+                'blue': {
+                    'players': {
+                        '$map': {
+                            'input': '$blue.players',
+                            'as': 'player',
+                            'in': {
+                                'id': '$$player.id.id',
+                                'platform': '$$player.id.platform',
+                                'name': '$$player.name',
+                                'car_id': '$$player.car_id',
+                                'car_name': '$$player.car_name',
+                                'stats': '$$player.stats'
+                            }
+                        }
+                    },
+                    'stats': 1,
+                    'name': 1
+                },
+                'orange': {
+                    'players': {
+                        '$map': {
+                            'input': '$orange.players',
+                            'as': 'player',
+                            'in': {
+                                'id': '$$player.id.id',
+                                'platform': '$$player.id.platform',
+                                'name': '$$player.name',
+                                'car_id': '$$player.car_id',
+                                'car_name': '$$player.car_name',
+                                'stats': '$$player.stats'
+                            }
+                        }
+                    },
+                    'stats': 1,
+                    'name': 1
+                }
+            }
+        }
+    ]

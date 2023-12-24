@@ -7,7 +7,7 @@ from pymongo import MongoClient
 
 # Can't put myself in map since I'm always the uploader, so I'll always be in.
 # This could totally probably be a list but idc anymore
-id_map = {
+ID_MAP = {
     "76561198104498918": "Calcifer",
     "76561198034834341": "armada",
     "3d10c9ba3d8d499d8002f684299a2259": "MrSaltroll",
@@ -16,12 +16,12 @@ id_map = {
     "a5908295a92848d6b1ad7e1ce6556502": "JC11111118",
 }
 
-headers = {
+HEADERS = {
     "Content-Type": "json",
     "Authorization": os.environ["API_KEY"]
 }
 
-base_url = "https://ballchasing.com/api"
+BASE_URL = "https://ballchasing.com/api"
 
 
 class ReplayDB:
@@ -31,7 +31,7 @@ class ReplayDB:
                                           password=os.environ["PASSWORD"])
         self.database = self.mongodb_client[os.environ["DB_NAME"]]
         self.session = requests.Session()
-        self.session.headers.update(headers)
+        self.session.headers.update(HEADERS)
         self.logger = logging.getLogger('replay_db')
         self.logger.info(f"Server version: {self.mongodb_client.server_info()['version']}")
 
@@ -45,9 +45,9 @@ class ReplayDB:
             "playlist": "private",
             "count": 200
         }
-        req = requests.Request('GET', base_url + "/replays", params=params)
+        req = requests.Request('GET', BASE_URL + "/replays", params=params)
         while True:
-            req.headers = headers
+            req.headers = HEADERS
             replay_page = self.session.send(req.prepare()).json()
             replay_list = replay_list + (replay_page["list"])
             if "next" not in replay_page:
@@ -80,7 +80,7 @@ class ReplayDB:
                 if "id" not in player["id"]:
                     # Replay has bot and I'm ruling out those games
                     return False
-                if player["id"]["id"] in id_map.keys():
+                if player["id"]["id"] in ID_MAP.keys():
                     return True
         return False
 
@@ -90,7 +90,7 @@ class ReplayDB:
         self.logger.info(f"Replays to fetch: {len(replays)}")
         for replay in replays:
             self.logger.debug(f"Fetching replay {replay['rocket_league_id']}")
-            r = self.session.get(base_url + "/replays/" + replay["id"])
+            r = self.session.get(BASE_URL + "/replays/" + replay["id"])
 
             if r.status_code != 200:
                 self.logger.error(f"Received status {r.status_code}")

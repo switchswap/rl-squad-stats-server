@@ -6,14 +6,13 @@ from routes import router as replays_router
 
 app = FastAPI(docs_url=None,
               redoc_url=None)
-
-origins = [
-    f"{os.environ['CORS_ORIGIN']}",
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        f"{os.environ['CORS_ORIGIN']}",
+    ],
 )
+
 
 @app.on_event("startup")
 def startup_db_client():

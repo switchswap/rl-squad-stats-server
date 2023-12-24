@@ -1,6 +1,7 @@
 import os
+import schedule
 import time
-
+import logging
 import requests
 from pymongo import MongoClient
 
@@ -31,7 +32,8 @@ class ReplayDB:
         self.database = self.mongodb_client[os.environ["DB_NAME"]]
         self.session = requests.Session()
         self.session.headers.update(headers)
-        print("Server version:", self.mongodb_client.server_info()["version"])
+        self.logger = logging.getLogger('replay_db')
+        self.logger.info(f"Server version: {self.mongodb_client.server_info()['version']}")
 
     def get_all_replays(self):
         """
@@ -63,10 +65,11 @@ class ReplayDB:
         """
         if self.database["replays"].find_one({"rocket_league_id": replay["rocket_league_id"]}) is not None:
             # Db already has this replay saved
-            # print(f"Already have id: {replay['rocket_league_id']}")
+            self.logger.debug(f"Already in db, id = {replay['rocket_league_id']}")
             return False
 
         if "players" not in replay["blue"] or "players" not in replay["orange"]:
+            self.logger.debug(f"Bad replay with no players, id = {replay['rocket_league_id']}")
             # Bad replay with no players
             return False
 
@@ -82,23 +85,43 @@ class ReplayDB:
         return False
 
     def get_replay_details(self):
+        self.logger.info("Updating replays...")
         replays = self.get_all_replays()
-        print(f"Replays to fetch: {len(replays)}")
+        self.logger.info(f"Replays to fetch: {len(replays)}")
         for replay in replays:
-            print(f"Fetching replay {replay['rocket_league_id']}")
+            self.logger.debug(f"Fetching replay {replay['rocket_league_id']}")
             r = self.session.get(base_url + "/replays/" + replay["id"])
 
             if r.status_code != 200:
-                print(r.json())
+                self.logger.error(f"Received status {r.status_code}")
+                self.logger.error(r.json())
                 break
 
             replay_details = r.json()
             # Only return processed replays
             if replay_details["status"] == "ok":
                 self.database["replays"].insert_one(replay_details)
+            else:
+                self.logger.error(f"Replay status for id = {replay_details['id']}  was {replay_details['status']}")
             time.sleep(1)
+        self.logger.info("Replays updated!")
 
 
-replay_db = ReplayDB()
-replay_db.get_replay_details()
-print("Replays updated!")
+if __name__ == '__main__':
+    logging.basicConfig()
+    # Enable schedule logs
+    logging.getLogger('schedule').setLevel(level=logging.DEBUG)
+    # Enable replay_db logs
+    logging.getLogger('replay_db').setLevel(level=logging.DEBUG)
+
+    replay_db = ReplayDB()
+
+
+    def update_replays():
+        replay_db.get_replay_details()
+
+
+    schedule.every().day.at("02:00").do(update_replays)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

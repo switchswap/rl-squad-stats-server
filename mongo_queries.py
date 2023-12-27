@@ -357,7 +357,7 @@ player_stats_pipeline = [
 
 
 def match_history_pipeline(ids: list[str]):
-    return [
+    history_pipeline = [
         {
             '$match': {
                 '$or': [
@@ -423,3 +423,24 @@ def match_history_pipeline(ids: list[str]):
             }
         }
     ]
+    # This looks horrendous. There must have been a better way.
+    # Make sure matches are symmetrical for non-individual lookups.
+    if len(ids) is not 1:
+        history_pipeline.insert(1,
+                                {
+                                    '$match': {
+                                        '$and': [
+                                            {
+                                                'blue.players': {
+                                                    '$size': len(ids)
+                                                }
+                                            }, {
+                                                'orange.players': {
+                                                    '$size': len(ids)
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                                )
+    return history_pipeline

@@ -1,6 +1,6 @@
-from typing import Optional, Annotated
+from typing import Optional
 
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import BaseModel
 
 from models.base_models import TeamStats, PlayerStats
 

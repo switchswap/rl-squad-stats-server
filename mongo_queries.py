@@ -425,7 +425,7 @@ def match_history_pipeline(ids: list[str]):
     ]
     # This looks horrendous. There must have been a better way.
     # Make sure matches are symmetrical for non-individual lookups.
-    if len(ids) is not 1:
+    if len(ids) != 1:
         history_pipeline.insert(1,
                                 {
                                     '$match': {

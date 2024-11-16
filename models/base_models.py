@@ -119,7 +119,7 @@ class PlayerStats(BaseModel):
 
 class Ball(BaseModel):
     possession_time: Optional[float] = 0
-    time_in_side: float
+    time_in_side: Optional[float] = 0
 
 
 class TeamCore(BaseModel):

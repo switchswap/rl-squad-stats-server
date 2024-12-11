@@ -106,6 +106,17 @@ class ReplayDB:
             time.sleep(1)
         self.logger.info("Replays updated!")
 
+    def set_last_updated_time(self):
+        """
+        Sets the last updated time in the database to the current time.
+        This should be called after the replays are freshly updated.
+        """
+        self.logger.info("Setting last update time...")
+        current_timestamp = time.time_ns()
+        update = {"$set": {"last_updated": time.time_ns()}}
+        self.database["info"].update_one(filter={}, update=update, upsert=True)
+        self.logger.info(f"Set last update time: {current_timestamp}.")
+
 
 if __name__ == '__main__':
     logging.basicConfig()
@@ -119,6 +130,7 @@ if __name__ == '__main__':
 
     def update_replays():
         replay_db.get_replay_details()
+        replay_db.set_last_updated_time()
 
 
     schedule.every().day.at("02:00").do(update_replays)

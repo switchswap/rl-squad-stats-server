@@ -1,13 +1,11 @@
 from typing import Annotated
 from fastapi import APIRouter, Request, Query
 import mongo_queries
-from models.base_models import Replay
-from models.match_detail_models import MatchDetails
 
 router = APIRouter()
 
 
-@router.get("/replays", response_description="List all replays", response_model=list[Replay])
+@router.get("/replays", response_description="List all replays")
 def get_replays(request: Request):
     return list(request.app.database["replays"].find())
 
@@ -43,7 +41,7 @@ def get_total_match_count(request: Request):
     }
 
 
-@router.get("/history/", response_description="Get match history for a team", response_model=list[MatchDetails])
+@router.get("/history/", response_description="Get match history for a team")
 def get_match_history(request: Request, player_id: Annotated[list[str], Query()]):
     match_history = list(request.app.database["replays"].aggregate(mongo_queries.match_history_pipeline(player_id)))
     return match_history

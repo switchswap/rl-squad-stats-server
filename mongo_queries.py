@@ -3,14 +3,26 @@ player_total_wins_pipeline = [
         '$project': {
             'gameId': '$id',
             'blueTeam': {
-                '$setUnion': [
-                    '$blue.players.id.id', []
-                ]
+                '$map': {
+                    'input': '$blue.players',
+                    'as': 'player',
+                    'in': {
+                        'name': '$$player.name',
+                        'id': '$$player.id.id',
+                        'platform': '$$player.id.platform'
+                    }
+                }
             },
             'orangeTeam': {
-                '$setUnion': [
-                    '$orange.players.id.id', []
-                ]
+                '$map': {
+                    'input': '$orange.players',
+                    'as': 'player',
+                    'in': {
+                        'name': '$$player.name',
+                        'id': '$$player.id.id',
+                        'platform': '$$player.id.platform'
+                    }
+                }
             },
             'blueGoals': '$blue.stats.core.goals',
             'orangeGoals': '$orange.stats.core.goals'
@@ -70,7 +82,9 @@ player_total_wins_pipeline = [
     }, {
         '$project': {
             '_id': 0,
-            'id': '$_id',
+            'players': [
+                '$_id'
+            ],
             'totalWins': 1,
             'totalGames': 1
         }
@@ -78,40 +92,52 @@ player_total_wins_pipeline = [
 ]
 twos_wins_per_team_pipeline = [
     {
-        '$project': {
-            'gameId': '$id',
-            'blueTeam': {
-                '$setUnion': [
-                    '$blue.players.id.id', []
-                ]
-            },
-            'orangeTeam': {
-                '$setUnion': [
-                    '$orange.players.id.id', []
-                ]
-            },
-            'blueGoals': '$blue.stats.core.goals',
-            'orangeGoals': '$orange.stats.core.goals'
-        }
-    }, {
         '$match': {
             '$expr': {
                 '$and': [
                     {
                         '$eq': [
                             {
-                                '$size': '$blueTeam'
+                                '$size': '$blue.players'
                             }, 2
                         ]
                     }, {
                         '$eq': [
                             {
-                                '$size': '$orangeTeam'
+                                '$size': '$orange.players'
                             }, 2
                         ]
                     }
                 ]
             }
+        }
+    }, {
+        '$project': {
+            'gameId': '$id',
+            'blueTeam': {
+                '$map': {
+                    'input': '$blue.players',
+                    'as': 'player',
+                    'in': {
+                        'name': '$$player.name',
+                        'id': '$$player.id.id',
+                        'platform': '$$player.id.platform'
+                    }
+                }
+            },
+            'orangeTeam': {
+                '$map': {
+                    'input': '$orange.players',
+                    'as': 'player',
+                    'in': {
+                        'name': '$$player.name',
+                        'id': '$$player.id.id',
+                        'platform': '$$player.id.platform'
+                    }
+                }
+            },
+            'blueGoals': '$blue.stats.core.goals',
+            'orangeGoals': '$orange.stats.core.goals'
         }
     }, {
         '$project': {
@@ -122,12 +148,22 @@ twos_wins_per_team_pipeline = [
                     'teamColor': 'blue',
                     'players': '$blueTeam',
                     'goalsFor': '$blueGoals',
-                    'goalsAgainst': '$orangeGoals'
+                    'goalsAgainst': '$orangeGoals',
+                    'won': {
+                        '$gt': [
+                            '$blueGoals', '$orangeGoals'
+                        ]
+                    }
                 }, {
                     'teamColor': 'orange',
                     'players': '$orangeTeam',
                     'goalsFor': '$orangeGoals',
-                    'goalsAgainst': '$blueGoals'
+                    'goalsAgainst': '$blueGoals',
+                    'won': {
+                        '$gt': [
+                            '$orangeGoals', '$blueGoals'
+                        ]
+                    }
                 }
             ]
         }
@@ -142,11 +178,7 @@ twos_wins_per_team_pipeline = [
                 ]
             },
             'teamColor': '$teams.teamColor',
-            'won': {
-                '$gt': [
-                    '$teams.goalsFor', '$teams.goalsAgainst'
-                ]
-            }
+            'won': '$teams.won'
         }
     }, {
         '$group': {
@@ -163,10 +195,6 @@ twos_wins_per_team_pipeline = [
             'totalGames': {
                 '$sum': 1
             }
-        }
-    }, {
-        '$sort': {
-            '_id': 1
         }
     }, {
         '$project': {
@@ -179,40 +207,52 @@ twos_wins_per_team_pipeline = [
 ]
 threes_wins_per_team_pipeline = [
     {
-        '$project': {
-            'gameId': '$id',
-            'blueTeam': {
-                '$setUnion': [
-                    '$blue.players.id.id', []
-                ]
-            },
-            'orangeTeam': {
-                '$setUnion': [
-                    '$orange.players.id.id', []
-                ]
-            },
-            'blueGoals': '$blue.stats.core.goals',
-            'orangeGoals': '$orange.stats.core.goals'
-        }
-    }, {
         '$match': {
             '$expr': {
                 '$and': [
                     {
                         '$eq': [
                             {
-                                '$size': '$blueTeam'
+                                '$size': '$blue.players'
                             }, 3
                         ]
                     }, {
                         '$eq': [
                             {
-                                '$size': '$orangeTeam'
+                                '$size': '$orange.players'
                             }, 3
                         ]
                     }
                 ]
             }
+        }
+    }, {
+        '$project': {
+            'gameId': '$id',
+            'blueTeam': {
+                '$map': {
+                    'input': '$blue.players',
+                    'as': 'player',
+                    'in': {
+                        'name': '$$player.name',
+                        'id': '$$player.id.id',
+                        'platform': '$$player.id.platform'
+                    }
+                }
+            },
+            'orangeTeam': {
+                '$map': {
+                    'input': '$orange.players',
+                    'as': 'player',
+                    'in': {
+                        'name': '$$player.name',
+                        'id': '$$player.id.id',
+                        'platform': '$$player.id.platform'
+                    }
+                }
+            },
+            'blueGoals': '$blue.stats.core.goals',
+            'orangeGoals': '$orange.stats.core.goals'
         }
     }, {
         '$project': {
@@ -223,12 +263,22 @@ threes_wins_per_team_pipeline = [
                     'teamColor': 'blue',
                     'players': '$blueTeam',
                     'goalsFor': '$blueGoals',
-                    'goalsAgainst': '$orangeGoals'
+                    'goalsAgainst': '$orangeGoals',
+                    'won': {
+                        '$gt': [
+                            '$blueGoals', '$orangeGoals'
+                        ]
+                    }
                 }, {
                     'teamColor': 'orange',
                     'players': '$orangeTeam',
                     'goalsFor': '$orangeGoals',
-                    'goalsAgainst': '$blueGoals'
+                    'goalsAgainst': '$blueGoals',
+                    'won': {
+                        '$gt': [
+                            '$orangeGoals', '$blueGoals'
+                        ]
+                    }
                 }
             ]
         }
@@ -243,11 +293,7 @@ threes_wins_per_team_pipeline = [
                 ]
             },
             'teamColor': '$teams.teamColor',
-            'won': {
-                '$gt': [
-                    '$teams.goalsFor', '$teams.goalsAgainst'
-                ]
-            }
+            'won': '$teams.won'
         }
     }, {
         '$group': {
@@ -264,10 +310,6 @@ threes_wins_per_team_pipeline = [
             'totalGames': {
                 '$sum': 1
             }
-        }
-    }, {
-        '$sort': {
-            '_id': 1
         }
     }, {
         '$project': {

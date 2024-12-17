@@ -34,9 +34,10 @@ def get_player_details(request: Request):
     return player_details
 
 
-@router.get("/count", response_description="Get total matches played")
-def get_total_match_count(request: Request):
+@router.get("/info", response_description="Get database information")
+def get_db_info(request: Request):
     return {
+        "lastUpdatedTimestamp": request.app.database["info"].find_one().get("lastUpdatedTimestamp", 0),
         "count": request.app.database["replays"].count_documents({})
     }
 

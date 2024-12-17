@@ -28,7 +28,7 @@ def get_3s_wins(request: Request):
     return wins_table
 
 
-@router.get("/details", response_description="List all player details")
+@router.get("/player_details", response_description="List all player details")
 def get_player_details(request: Request):
     player_details = list(request.app.database["replays"].aggregate(mongo_queries.player_stats_pipeline))
     return player_details

@@ -113,7 +113,7 @@ class ReplayDB:
         """
         self.logger.info("Setting last update time...")
         current_timestamp = time.time_ns()
-        update = {"$set": {"last_updated": time.time_ns()}}
+        update = {"$set": {"lastUpdatedTimestamp": time.time_ns()}}
         self.database["info"].update_one(filter={}, update=update, upsert=True)
         self.logger.info(f"Set last update time: {current_timestamp}.")
 
